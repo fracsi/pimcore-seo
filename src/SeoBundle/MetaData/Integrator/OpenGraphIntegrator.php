@@ -70,7 +70,7 @@ class OpenGraphIntegrator implements IntegratorInterface
         }
 
         return [
-            'path'   => sprintf('@SeoBundle/Resources/views/preview/ogGraph/%s.html.twig', $template),
+            'path'   => sprintf('@Seo/preview/ogGraph/%s.html.twig', $template),
             'params' => [
                 'title'       => $title,
                 'description' => $description,

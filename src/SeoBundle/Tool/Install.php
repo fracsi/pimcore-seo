@@ -10,11 +10,11 @@ use Doctrine\DBAL\Migrations\Version;
 use Pimcore\Bundle\AdminBundle\Security\User\TokenStorageUserResolver;
 use Pimcore\Db\Connection;
 use Pimcore\Model\User\Permission;
-use Pimcore\Extension\Bundle\Installer\MigrationInstaller;
+use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 use Pimcore\Migrations\Migration\InstallMigration;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 
-class Install extends MigrationInstaller
+class Install extends AbstractInstaller
 {
     /**
      * @var array
@@ -170,5 +170,16 @@ class Install extends MigrationInstaller
     protected function getInstallSourcesPath()
     {
         return __DIR__ . '/../Resources/install';
+    }
+
+    public function canBeInstalled()
+    {
+        return true;
+    }
+
+    public function install()
+    {
+        $this->installDbStructure();
+        $this->installPermissions();
     }
 }

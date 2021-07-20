@@ -47,7 +47,7 @@ class TitleDescriptionIntegrator implements IntegratorInterface
         $description = isset($data['description']) ? $data['description'] : 'This is a very long description which should be not too long.';
 
         return [
-            'path'   => '@SeoBundle/Resources/views/preview/titleDescription/preview.html.twig',
+            'path'   => '@Seo/preview/titleDescription/preview.html.twig',
             'params' => [
                 'url'         => $url,
                 'author'      => $author,

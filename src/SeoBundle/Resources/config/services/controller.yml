@@ -6,5 +6,4 @@ services:
         public: true
 
     SeoBundle\Controller\Admin\MetaDataController:
-        calls:
-            - [setContainer, ['@service_container']]
+        tags: [ 'controller.service_arguments' ]

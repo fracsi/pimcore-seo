@@ -65,7 +65,7 @@ class TwitterCardIntegrator implements IntegratorInterface
         }
 
         return [
-            'path'   => '@SeoBundle/Resources/views/preview/twitterCard/preview.html.twig',
+            'path'   => '@Seo/preview/twitterCard/preview.html.twig',
             'params' => [
                 'title'       => $title,
                 'description' => $description,
