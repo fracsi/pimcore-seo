@@ -4,15 +4,12 @@ namespace SeoBundle\Tool;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Migrations\AbortMigrationException;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Migrations\MigrationException;
 use Doctrine\DBAL\Migrations\Version;
-use Pimcore\Bundle\AdminBundle\Security\User\TokenStorageUserResolver;
 use Pimcore\Db\Connection;
-use Pimcore\Model\User\Permission;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 use Pimcore\Migrations\Migration\InstallMigration;
-use Symfony\Component\Serializer\Encoder\DecoderInterface;
+use Pimcore\Model\User\Permission;
 
 class Install extends AbstractInstaller
 {
@@ -25,70 +22,9 @@ class Install extends AbstractInstaller
     ];
 
     /**
-     * @var TokenStorageUserResolver
-     */
-    protected $resolver;
-
-    /**
-     * @var DecoderInterface
-     */
-    protected $serializer;
-
-    /**
-     * @param TokenStorageUserResolver $resolver
-     */
-    public function setTokenStorageUserResolver(TokenStorageUserResolver $resolver)
-    {
-        $this->resolver = $resolver;
-    }
-
-    /**
-     * @param DecoderInterface $serializer
-     */
-    public function setSerializer(DecoderInterface $serializer)
-    {
-        $this->serializer = $serializer;
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function getMigrationVersion(): string
-    {
-        return '00000001';
-    }
-
-    /**
-     * @throws MigrationException
-     * @throws DBALException
-     */
-    protected function beforeInstallMigration()
-    {
-        $migrationConfiguration = $this->migrationManager->getBundleConfiguration($this->bundle);
-        $this->migrationManager->markVersionAsMigrated($migrationConfiguration->getVersion($migrationConfiguration->getLatestVersion()));
-
-        $this->initializeFreshSetup();
-    }
-
-    /**
-     * @param Schema  $schema
-     * @param Version $version
-     */
-    public function migrateInstall(Schema $schema, Version $version)
-    {
-        /** @var InstallMigration $migration */
-        $migration = $version->getMigration();
-        if ($migration->isDryRun()) {
-            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping installation');
-
-            return;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function needsReloadAfterInstall()
+    public function needsReloadAfterInstall(): bool
     {
         return true;
     }
@@ -97,89 +33,66 @@ class Install extends AbstractInstaller
      * @throws AbortMigrationException
      * @throws DBALException
      */
-    public function initializeFreshSetup()
+    public function initializeFreshSetup(): void
     {
         $this->installDbStructure();
         $this->installPermissions();
     }
 
     /**
-     * @param Schema  $schema
-     * @param Version $version
-     */
-    public function migrateUninstall(Schema $schema, Version $version)
-    {
-        /** @var InstallMigration $migration */
-        $migration = $version->getMigration();
-        if ($migration->isDryRun()) {
-            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping uninstallation');
-
-            return;
-        }
-
-        // currently nothing to do.
-    }
-
-    /**
-     * @param string|null $version
-     */
-    protected function beforeUpdateMigration(string $version = null)
-    {
-        // currently nothing to do.
-        return;
-    }
-
-    /**
      * @throws DBALException
      */
-    protected function installDbStructure()
+    protected function installDbStructure(): void
     {
         /** @var Connection $db */
         $db = \Pimcore\Db::get();
-        $db->query(file_get_contents($this->getInstallSourcesPath() . '/sql/install.sql'));
+        $db->query(file_get_contents($this->getInstallSourcesPath().'/sql/install.sql'));
     }
 
-    /**
-     * @throws AbortMigrationException
-     */
-    protected function installPermissions()
+    protected function installPermissions(): void
     {
         foreach (self::REQUIRED_PERMISSION as $permission) {
             $definition = Permission\Definition::getByKey($permission);
 
             if ($definition) {
-                $this->outputWriter->write(sprintf(
+                $this->output->write(sprintf(
                     '     <comment>WARNING:</comment> Skipping permission "%s" as it already exists',
                     $permission
                 ));
 
                 continue;
             }
-
-            try {
-                Permission\Definition::create($permission);
-            } catch (\Throwable $e) {
-                throw new AbortMigrationException(sprintf('Failed to create permission "%s": %s', $permission, $e->getMessage()));
-            }
+            Permission\Definition::create($permission);
         }
     }
 
+    protected function getInstallSourcesPath(): string
+    {
+        return __DIR__.'/../Resources/install';
+    }
+
     /**
-     * @return string
+     * {@inheritdoc}
      */
-    protected function getInstallSourcesPath()
+    public function canBeInstalled(): bool
     {
-        return __DIR__ . '/../Resources/install';
+        return !$this->isInstalled();
     }
 
-    public function canBeInstalled()
-    {
-        return true;
-    }
-
-    public function install()
+    /**
+     * {@inheritdoc}
+     */
+    public function install(): void
     {
         $this->installDbStructure();
         $this->installPermissions();
+    }
+
+    public function isInstalled(): bool
+    {
+        $db = \Pimcore\Db::get();
+        $check = $db->fetchOne('SELECT `key` FROM users_permission_definitions where `key` = ?', [self::REQUIRED_PERMISSION[0]]);
+
+        return (bool)$check;
     }
 }

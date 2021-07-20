@@ -22,7 +22,7 @@ class SeoExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $loader = new YamlFileLoader($container, new FileLocator([__DIR__ . '/../Resources/config']));
-        $loader->load('services.yml');
+        $loader->load('services.yaml');
 
         $persistenceConfig = $config['persistence']['doctrine'];
         $entityManagerName = $persistenceConfig['entity_manager'];
@@ -55,11 +55,11 @@ class SeoExtension extends Extension
         $bundles = $container->getParameter('kernel.bundles');
 
         if (Bundle::hasBundle('CoreShopSEOBundle', $bundles) === true && $thirdPartyOptions['coreshop']['disable_default_extractors'] === false) {
-            $loader->load('services/extractors/coreshop.yml');
+            $loader->load('services/extractors/coreshop.yaml');
         }
 
         if (Bundle::hasDachcomBundle('NewsBundle', $bundles) === true && $thirdPartyOptions['news']['disable_default_extractors'] === false) {
-            $loader->load('services/extractors/news.yml');
+            $loader->load('services/extractors/news.yaml');
         }
     }
 }

@@ -4,26 +4,19 @@ namespace SeoBundle\Migrations;
 
 use Doctrine\DBAL\Migrations\AbortMigrationException;
 use Doctrine\DBAL\Schema\Schema;
-use Pimcore\Migrations\Migration\AbstractPimcoreMigration;
+use Doctrine\Migrations\AbstractMigration;
 use Pimcore\Model\User\Permission;
 use SeoBundle\Tool\Install;
 
-class Version20201015112617 extends AbstractPimcoreMigration
+class Version20201015112617 extends AbstractMigration
 {
-    /**
-     * @inheritdoc
-     */
-    public function doesSqlMigrations(): bool
-    {
-        return false;
-    }
 
     /**
      * @param Schema $schema
      *
      * @throws AbortMigrationException
      */
-    public function up(Schema $schema)
+    public function up(Schema $schema): void
     {
         foreach (Install::REQUIRED_PERMISSION as $permission) {
             $definition = Permission\Definition::getByKey($permission);
@@ -43,7 +36,7 @@ class Version20201015112617 extends AbstractPimcoreMigration
     /**
      * @param Schema $schema
      */
-    public function down(Schema $schema)
+    public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
     }
